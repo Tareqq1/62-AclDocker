@@ -59,6 +59,7 @@ public class CartService extends MainService<Cart> {
         return "Product removed from cart";
     }
 
+    //just in case
     public UserRepository getUserRepository() {
         return userRepository;
     }
