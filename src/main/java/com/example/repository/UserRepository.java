@@ -115,15 +115,16 @@ public class UserRepository extends MainRepository<User> {
         try {
             File file = new File(getDataPath());
             List<User> users = objectMapper.readValue(file, new TypeReference<List<User>>() {});
-
             boolean removed = users.removeIf(user -> user.getId().equals(userId));
-
+            if (!removed) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+            }
             objectMapper.writeValue(file, users);
-
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to delete user.");
         }
     }
+
 
 
 

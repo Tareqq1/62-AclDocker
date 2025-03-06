@@ -52,10 +52,13 @@ public class CartService extends MainService<Cart> {
 
     public String deleteProductFromCart(UUID cartId, UUID productId) {
         Product product = productRepository.getProductById(productId);
-        if (product == null) return "Product not found";
+        if (product == null) {
+            return "Product not found";
+        }
         cartRepository.deleteProductFromCart(cartId, product);
-        return "Cart is empty";
+        return "Product deleted from cart";
     }
+
 
     //just in case
     public UserRepository getUserRepository() {

@@ -24,8 +24,12 @@ public class UserService {
 
     // 1) Add New User
     public User addUser(User user) {
+        if (user == null) {
+            throw new NullPointerException("User cannot be null");
+        }
         return userRepository.addUser(user);
     }
+
 
     // 2) Get All Users
     public ArrayList<User> getUsers() {
