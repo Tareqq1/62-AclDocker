@@ -1,10 +1,16 @@
 package com.example.repository;
 
 import com.example.model.Order;
+import com.example.model.Product;
 import com.example.model.User;
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -106,10 +112,20 @@ public class UserRepository extends MainRepository<User> {
      *    Deletes a user by passing his/her ID.
      */
     public void deleteUserById(UUID userId) {
-        ArrayList<User> users = getUsers();
-        boolean removed = users.removeIf(u -> u.getId().equals(userId));
-        if (removed) {
-            overrideData(users);
+        try {
+            File file = new File(getDataPath());
+            List<User> users = objectMapper.readValue(file, new TypeReference<List<User>>() {});
+
+            boolean removed = users.removeIf(user -> user.getId().equals(userId));
+
+            objectMapper.writeValue(file, users);
+
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to delete user.");
         }
     }
+
+
+
+
 }

@@ -17,13 +17,13 @@ public class ProductService extends MainService<Product> {
 
     @Autowired
     public ProductService(ProductRepository productRepository){
+
         this.productRepository = productRepository;
     }
 
 
 
     public Product addProduct(Product product){
-        product.setId(UUID.randomUUID());
         return productRepository.addProduct(product);
     }
 

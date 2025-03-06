@@ -43,20 +43,18 @@ public class CartService extends MainService<Cart> {
         cartRepository.deleteCartById(cartId);
     }
 
-    public String addProductToCart(UUID cartId, UUID productId) {
-        Product product = productRepository.getProductById(productId);
-        if (product == null) return "Product not found";
-
+    public void addProductToCart(UUID cartId, Product product) {
+        if (product == null) {
+            throw new IllegalArgumentException("Product cannot be null");
+        }
         cartRepository.addProductToCart(cartId, product);
-        return "Product added to cart";
     }
 
     public String deleteProductFromCart(UUID cartId, UUID productId) {
         Product product = productRepository.getProductById(productId);
         if (product == null) return "Product not found";
-
         cartRepository.deleteProductFromCart(cartId, product);
-        return "Product removed from cart";
+        return "Cart is empty";
     }
 
     //just in case

@@ -1,6 +1,7 @@
 package com.example.controller;
 
 import com.example.model.Cart;
+import com.example.model.Product;
 import com.example.service.CartService;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,8 +37,9 @@ public class CartController {
     }
 
     @PutMapping("/addProduct/{cartId}")
-    public String addProductToCart(@PathVariable UUID cartId, @RequestParam UUID productId) {
-        return cartService.addProductToCart(cartId, productId);
+    public String addProductToCart(@PathVariable UUID cartId, @RequestBody Product product) {
+        cartService.addProductToCart(cartId, product);
+        return "Product added to cart";
     }
 
     @PutMapping("/deleteProduct/{cartId}")

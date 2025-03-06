@@ -39,7 +39,7 @@ public class UserController {
     }
 
     // 4) Delete User Endpoint: DELETE /user/delete/{userId}
-    @DeleteMapping("/delete/{userId}")
+    @DeleteMapping("delete/{userId}")
     public String deleteUserById(@PathVariable UUID userId) {
         userService.deleteUserById(userId);
         return "User deleted successfully";

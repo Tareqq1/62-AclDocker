@@ -8,8 +8,10 @@ import org.springframework.stereotype.Repository;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -52,7 +54,7 @@ public class ProductRepository extends MainRepository<Product> {
         }
     }
 
-    public Product updateProduct(UUID productId, String newName, double newPrice) {
+    public Product updateProduct(UUID productId, String newName, Double newPrice) {
         try {
             File file = new File(getDataPath());
             List<Product> products = objectMapper.readValue(file, new TypeReference<List<Product>>() {});
@@ -61,23 +63,20 @@ public class ProductRepository extends MainRepository<Product> {
                     .filter(product -> product.getId().equals(productId))
                     .findFirst()
                     .map(product -> {
-                        product.setName(newName);
-                        product.setPrice(newPrice);
-                        try {
-                            objectMapper.writeValue(file, products);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to write products.json");
+                        if (newName != null) {
+                            product.setName(newName);
                         }
+                        if (newPrice != null) { // Only update price if newPrice is provided
+                            product.setPrice(newPrice);
+                        }
+                        saveAll(new ArrayList<>(products)); // Save the updated list
                         return product;
                     })
-                    .orElse(null);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to read products.json");
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to update product", e);
         }
     }
-
     public void applyDiscount(double discount, ArrayList<UUID> productIds) {
         try {
             File file = new File(getDataPath());
