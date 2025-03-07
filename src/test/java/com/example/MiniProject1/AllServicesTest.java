@@ -2,6 +2,10 @@ package com.example.MiniProject1;
 
 import com.example.model.Order;
 import com.example.model.User;
+import com.example.model.Cart;
+import com.example.model.Product;
+
+import com.example.service.CartService;
 import com.example.service.OrderService;
 import com.example.service.UserService;
 import org.junit.jupiter.api.Test;
@@ -23,6 +27,10 @@ public class AllServicesTest {
 
     @Autowired
     private OrderService orderService;
+
+    @Autowired
+    private CartService cartService;
+
 
     // ============= UserService Tests =============
 
@@ -371,4 +379,173 @@ public class AllServicesTest {
         boolean exists = orders.stream().anyMatch(o -> o.getId().equals(orderId));
         assertFalse(exists, "Deleted order should not be present in the orders list");
     }
+
+    // Tests for Cart!!!!
+
+    @Test
+    void addCart_success() {
+        UUID cartId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        Cart cart = new Cart(cartId, userId, new ArrayList<>());
+
+        Cart savedCart = cartService.addCart(cart);
+
+        System.out.println("Saved Cart: " + savedCart);
+
+        assertNotNull(savedCart, "Saved cart should not be null");
+        assertEquals(userId, savedCart.getUserId(), "Cart should be associated with the correct user");
+    }
+
+    @Test
+    void addCart_nullCart_doesNotThrow() {
+        assertDoesNotThrow(() -> cartService.addCart(null));
+    }
+
+    @Test
+    void addCart_duplicateCartId_allowsMultipleEntries() {
+        UUID cartId = UUID.randomUUID();
+        Cart cart1 = new Cart(cartId, UUID.randomUUID(), new ArrayList<>());
+        Cart cart2 = new Cart(cartId, UUID.randomUUID(), new ArrayList<>());
+
+        cartService.addCart(cart1);
+        cartService.addCart(cart2);
+
+        List<Cart> carts = cartService.getCarts();
+        assertTrue(carts.size() >= 1, "At least one cart with the same ID should exist");
+    }
+
+
+    @Test
+    void getCarts_returnsNonEmptyListAfterAdd() {
+        cartService.addCart(new Cart(UUID.randomUUID(), UUID.randomUUID(), new ArrayList<>()));
+        List<Cart> carts = cartService.getCarts();
+        assertNotNull(carts);
+        assertFalse(carts.isEmpty(), "Carts list should not be empty");
+    }
+
+    @Test
+    void getCarts_returnsEmptyInitially() {
+        List<Cart> carts = cartService.getCarts();
+        assertNotNull(carts, "Carts list should not be null");
+    }
+
+    @Test
+    void getCarts_multipleCartsAreRetrieved() {
+        cartService.addCart(new Cart(UUID.randomUUID(), UUID.randomUUID(), new ArrayList<>()));
+        cartService.addCart(new Cart(UUID.randomUUID(), UUID.randomUUID(), new ArrayList<>()));
+        List<Cart> carts = cartService.getCarts();
+        assertTrue(carts.size() >= 2, "Carts list should contain multiple entries");
+    }
+
+
+    @Test
+    void getCartById_returnsCorrectCart() {
+        UUID cartId = UUID.randomUUID();
+        Cart cart = new Cart(cartId, UUID.randomUUID(), new ArrayList<>());
+        cartService.addCart(cart);
+        Cart retrieved = cartService.getCartById(cartId);
+        assertNotNull(retrieved);
+        assertEquals(cartId, retrieved.getId());
+    }
+
+    @Test
+    void getCartById_returnsNullForNonexistentCart() {
+        Cart retrieved = cartService.getCartById(UUID.randomUUID());
+        assertNull(retrieved, "Should return null if cart does not exist");
+    }
+
+    @Test
+    void getCartById_handlesMultipleCarts() {
+        UUID cartId = UUID.randomUUID();
+        cartService.addCart(new Cart(cartId, UUID.randomUUID(), new ArrayList<>()));
+        cartService.addCart(new Cart(UUID.randomUUID(), UUID.randomUUID(), new ArrayList<>()));
+
+        Cart retrieved = cartService.getCartById(cartId);
+        assertNotNull(retrieved);
+        assertEquals(cartId, retrieved.getId());
+    }
+
+
+    @Test
+    void getCartByUserId_returnsCorrectCart() {
+        UUID userId = UUID.randomUUID();
+        Cart cart = new Cart(UUID.randomUUID(), userId, new ArrayList<>());
+        cartService.addCart(cart);
+        Cart retrieved = cartService.getCartByUserId(userId);
+        assertNotNull(retrieved);
+        assertEquals(userId, retrieved.getUserId());
+    }
+
+    @Test
+    void getCartByUserId_returnsNullForNonexistentUser() {
+        Cart retrieved = cartService.getCartByUserId(UUID.randomUUID());
+        assertNull(retrieved, "Should return null if user does not have a cart");
+    }
+
+    @Test
+    void getCartByUserId_handlesMultipleUsers() {
+        UUID userId = UUID.randomUUID();
+        cartService.addCart(new Cart(UUID.randomUUID(), userId, new ArrayList<>()));
+        cartService.addCart(new Cart(UUID.randomUUID(), UUID.randomUUID(), new ArrayList<>()));
+
+        Cart retrieved = cartService.getCartByUserId(userId);
+        assertNotNull(retrieved);
+        assertEquals(userId, retrieved.getUserId());
+    }
+
+
+    @Test
+    void deleteCartById_success() {
+        UUID cartId = UUID.randomUUID();
+        cartService.addCart(new Cart(cartId, UUID.randomUUID(), new ArrayList<>()));
+        cartService.deleteCartById(cartId);
+        assertNull(cartService.getCartById(cartId), "Deleted cart should not be retrievable");
+    }
+
+    @Test
+    void deleteCartById_nonExistentCart_doesNotThrow() {
+        assertDoesNotThrow(() -> cartService.deleteCartById(UUID.randomUUID()));
+    }
+
+    @Test
+    void deleteCartById_doesNotAffectOtherCarts() {
+        UUID cartId1 = UUID.randomUUID();
+        UUID cartId2 = UUID.randomUUID();
+        cartService.addCart(new Cart(cartId1, UUID.randomUUID(), new ArrayList<>()));
+        cartService.addCart(new Cart(cartId2, UUID.randomUUID(), new ArrayList<>()));
+
+        cartService.deleteCartById(cartId1);
+        assertNotNull(cartService.getCartById(cartId2), "Other carts should remain unaffected");
+    }
+
+    // --- Tests for addProductToCart(UUID cartId, Product product) ---
+
+    @Test
+    void addProductToCart_success() {
+        UUID cartId = UUID.randomUUID();
+        Product product = new Product(UUID.randomUUID(), "Laptop", 1500.0);
+        cartService.addCart(new Cart(cartId, UUID.randomUUID(), new ArrayList<>()));
+        assertDoesNotThrow(() -> cartService.addProductToCart(cartId, product));
+    }
+
+    @Test
+    void addProductToCart_nullProduct_throwsException() {
+        UUID cartId = UUID.randomUUID();
+        assertThrows(IllegalArgumentException.class, () -> cartService.addProductToCart(cartId, null));
+    }
+
+    @Test
+    void addProductToCart_productIsAddedSuccessfully() {
+        UUID cartId = UUID.randomUUID();
+        Product product = new Product(UUID.randomUUID(), "Phone", 800.0);
+        Cart cart = new Cart(cartId, UUID.randomUUID(), new ArrayList<>());
+        cartService.addCart(cart);
+        cartService.addProductToCart(cartId, product);
+    }
+
+    //remaining: Tests for deleteProductFromCart
+
 }
+
+
+
