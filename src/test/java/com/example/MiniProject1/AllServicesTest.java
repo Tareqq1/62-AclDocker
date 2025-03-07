@@ -411,7 +411,7 @@ public class AllServicesTest {
         cartService.addCart(cart2);
 
         List<Cart> carts = cartService.getCarts();
-        assertFalse(carts.isEmpty(), "At least one cart with the same ID should exist");
+        assertFalse(carts.isEmpty(), "At least one cart with same ID should exist");
     }
 
 
