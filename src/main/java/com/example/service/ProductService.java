@@ -13,7 +13,7 @@ import java.util.UUID;
 @SuppressWarnings("rawtypes")
 public class ProductService extends MainService<Product> {
 
- ProductRepository productRepository;
+ static ProductRepository productRepository;
 
     @Autowired
     public ProductService(ProductRepository productRepository){
@@ -22,27 +22,28 @@ public class ProductService extends MainService<Product> {
     }
 
 
-
-    public Product addProduct(Product product){
+    // 1) Add New Product
+    public static Product addProduct(Product product){
         return productRepository.addProduct(product);
     }
-
-    public ArrayList<Product> getProducts(){
+    // 2) Get All Products
+    public static ArrayList<Product> getProducts(){
         return productRepository.getProducts();
     }
-
-    public Product getProductById(UUID productId){
+    // 3) Get Product By id
+    public static Product getProductById(UUID productId){
         return productRepository.getProductById(productId);
     }
-
-    public Product updateProduct(UUID productId, String newName, double newPrice){
+    // 4) Update Product
+    public static Product updateProduct(UUID productId, String newName, double newPrice){
         return productRepository.updateProduct(productId, newName, newPrice);
     }
-
-    public void applyDiscount(double discount, ArrayList<UUID> productIds){
+    // 5) Apply Discount
+    public static void applyDiscount(double discount, ArrayList<UUID> productIds){
         productRepository.applyDiscount(discount,productIds);
     }
-    public void deleteProductById(UUID productId){
+    // 6 ) delete Product By ID
+   public static void deleteProductById(UUID productId){
         productRepository.deleteProductById(productId);
     }
 

@@ -7,6 +7,7 @@ import com.example.model.Product;
 
 import com.example.service.CartService;
 import com.example.service.OrderService;
+import com.example.service.ProductService;
 import com.example.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static jdk.internal.org.objectweb.asm.util.CheckClassAdapter.verify;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 public class AllServicesTest {
@@ -542,8 +545,100 @@ public class AllServicesTest {
         cartService.addCart(cart);
         cartService.addProductToCart(cartId, product);
     }
-
     //remaining: Tests for deleteProductFromCart
+
+    // ============= ProductServices Tests =============
+
+    @Test
+    void addProduct_success() {
+        UUID productId = UUID.randomUUID();
+        String productName = "Test Product";
+        double productPrice = 50.99;
+        Product product = new Product(productId, productName, productPrice);
+
+        Product savedProduct = ProductService.addProduct(product);
+
+        System.out.println("Saved Product: " + savedProduct);
+
+        assertNotNull(savedProduct, "Saved product should not be null");
+        assertEquals(productName, savedProduct.getName(), "Product name should match");
+        assertEquals(productPrice, savedProduct.getPrice(), "Product price should match");
+    }
+
+    @Test
+    void getProducts() {
+
+        Product product = new Product(UUID.randomUUID(), "Test Product", 50.99);
+        ProductService.addProduct(product);
+        List<Product> products = ProductService.getProducts();
+        assertNotNull(products, "Product list should not be null");
+        assertFalse(products.isEmpty(), "Product list should not be empty");
+    }
+
+    @Test
+    void getProductById() {
+        UUID productId = UUID.randomUUID();
+        Product product = new Product(productId, "Test Product", 50.99);
+        ProductService.addProduct(product);
+        Product retrieved = ProductService.getProductById(productId);
+        assertNotNull(retrieved, "Retrieved product should not be null");
+        assertEquals("Test Product", retrieved.getName(), "Product name should match");
+        assertEquals(50.99, retrieved.getPrice(), "Product price should match");
+    }
+
+    @Test
+    void updateProduct_updatesNameAndPrice() {
+        UUID productId = UUID.randomUUID();
+        Product originalProduct = new Product(productId, "Old Product", 50.00);
+        ProductService.addProduct(originalProduct);
+        String updatedName = "Updated Product";
+        double updatedPrice = 75.99;
+        Product updatedProduct = ProductService.updateProduct(productId, updatedName, updatedPrice);
+        assertNotNull(updatedProduct, "Updated product should not be null");
+        assertEquals(productId, updatedProduct.getId(), "Product ID should remain unchanged");
+        assertEquals(updatedName, updatedProduct.getName(), "Product name should be updated");
+        assertEquals(updatedPrice, updatedProduct.getPrice(), "Product price should be updated");
+    }
+    @Test
+    void applyDiscount() {
+        UUID productId1 = UUID.randomUUID();
+        UUID productId2 = UUID.randomUUID();
+
+        Product product1 = new Product(productId1, "Product 1", 100.00);
+        Product product2 = new Product(productId2, "Product 2", 200.00);
+
+        ProductService.addProduct(product1);
+        ProductService.addProduct(product2);
+
+        ArrayList<UUID> productIds = new ArrayList<>();
+        productIds.add(productId1);
+        productIds.add(productId2);
+
+        double discount = 60.0;
+        ProductService.applyDiscount(discount, productIds);
+
+        Product updatedProduct1 = ProductService.getProductById(productId1);
+        Product updatedProduct2 = ProductService.getProductById(productId2);
+
+        assertNotNull(updatedProduct1, "Product 1 should exist");
+        assertNotNull(updatedProduct2, "Product 2 should exist");
+
+        assertEquals(40.00, updatedProduct1.getPrice(), 0.01, "Product 1 price should be discounted");
+        assertEquals(80.00, updatedProduct2.getPrice(), 0.01, "Product 2 price should be discounted");
+    }
+    @Test
+    void deleteProductById_success() {
+        // Arrange: Create and add a product
+        UUID productId = UUID.randomUUID();
+        Product product = new Product(productId, "Test Product", 100.00);
+        ProductService.addProduct(product);
+        ProductService.deleteProductById(productId);
+
+        assertNull(ProductService.getProductById(productId), "Deleted product should not be retrievable");
+    }
+
+
+
 
 }
 
